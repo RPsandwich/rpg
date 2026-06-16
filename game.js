@@ -7,7 +7,7 @@ const player = {
     x: 250, 
     y: 285, 
     width: 30, 
-    height: 30, 
+    height: 34, 
     age: 28, 
     name: "Lilith",
     swinging: false,
@@ -27,6 +27,67 @@ const sword = {
     collected: false,
 }
 
+const grassTile = document.createElement("canvas");
+    grassTile.width = 8;
+    grassTile.height = 8;
+const grassCtx = grassTile.getContext("2d");
+    // base color
+    grassCtx.fillStyle = "#2d5a1b";
+    grassCtx.fillRect(0, 0, 8, 8);
+    // a couple of lighter flecks
+    grassCtx.fillStyle = "#3d7a2b";
+    grassCtx.fillRect(1, 2, 1, 3);
+    grassCtx.fillRect(5, 1, 1, 4);
+const grassPattern = ctx.createPattern(grassTile, "repeat");
+
+const bushTile = document.createElement("canvas");
+    bushTile.width = 8;
+    bushTile.height = 8;
+const bushCtx = bushTile.getContext("2d");
+    // base color
+    bushCtx.fillStyle = "#021f09";
+    bushCtx.fillRect(0, 0, 8, 8);
+    // a couple of lighter flecks
+    bushCtx.fillStyle = "#122a06";
+    bushCtx.fillRect(0, 0, 8, 8);
+    bushCtx.fillStyle = "#1f460d";
+    bushCtx.fillRect(0, 0, 2, 2);
+    bushCtx.fillRect(3, 1, 2, 2);
+    bushCtx.fillRect(6, 0, 2, 2);
+    bushCtx.fillRect(1, 4, 2, 2);
+    bushCtx.fillRect(5, 3, 2, 2);
+    bushCtx.fillRect(2, 6, 2, 2);
+    bushCtx.fillRect(6, 5, 2, 2);
+    bushCtx.fillStyle = "#2e6413";
+    bushCtx.fillRect(1, 1, 1, 1);
+    bushCtx.fillRect(5, 4, 1, 1);
+    bushCtx.fillRect(3, 6, 1, 1);
+const bushPattern = ctx.createPattern(bushTile, "repeat");
+
+const cuttableBushTile = document.createElement("canvas");
+    cuttableBushTile.width = 8;
+    cuttableBushTile.height = 8;
+const cuttableBushCtx = cuttableBushTile.getContext("2d");
+    // base color
+    cuttableBushCtx.fillStyle = "#021f09";
+    cuttableBushCtx.fillRect(0, 0, 8, 8);
+    // a couple of lighter flecks
+    cuttableBushCtx.fillStyle = "#4a6b0a";
+    cuttableBushCtx.fillRect(0, 0, 8, 8);
+    cuttableBushCtx.fillStyle = "#6a9410";
+    cuttableBushCtx.fillRect(0, 0, 2, 2);
+    cuttableBushCtx.fillRect(3, 1, 2, 2);
+    cuttableBushCtx.fillRect(6, 0, 2, 2);
+    cuttableBushCtx.fillRect(1, 4, 2, 2);
+    cuttableBushCtx.fillRect(5, 3, 2, 2);
+    cuttableBushCtx.fillRect(2, 6, 2, 2);
+    cuttableBushCtx.fillRect(6, 5, 2, 2);
+    cuttableBushCtx.fillStyle = "#8ab820";
+    cuttableBushCtx.fillRect(1, 1, 1, 1);
+    cuttableBushCtx.fillRect(5, 4, 1, 1);
+    cuttableBushCtx.fillRect(3, 6, 1, 1);
+const cuttableBushPattern = ctx.createPattern(cuttableBushTile, "repeat");
+
 const keys = {}
     window.addEventListener("keydown", function(e) {
     keys[e.key] = true;
@@ -45,8 +106,8 @@ const bushes = [
 ];
 
 const cuttableBushes = [
-    { x: 780, y: 280, width: 20, height: 40 },
-    { x: 780, y: 320, width: 20, height: 40 },
+    { x: 780, y: 280, width: 20, height: 40, cut: false, scale: 1 },
+    { x: 780, y: 320, width: 20, height: 40, cut: false, scale: 1 },
 ];
 
 function overlaps(a, b) {
@@ -61,7 +122,7 @@ return !(
 // the game loop — runs ~60 times per second
 function gameLoop() {
     // repaint the background every frame (this clears the last frame)
-    ctx.fillStyle = "#1e1e2e";
+    ctx.fillStyle = grassPattern;
     ctx.fillRect(0, 0, canvas.width, canvas.height);
     
 // ── everything in our game will get drawn here ──
@@ -147,13 +208,22 @@ function gameLoop() {
     });
 
     bushes.forEach(function(bush) {
-    ctx.fillStyle = "#024f16";
+    ctx.fillStyle = bushPattern;
     ctx.fillRect(bush.x, bush.y, bush.width, bush.height);
     });
 
     cuttableBushes.forEach(function(bush) {
-    if (!bush.cut) {
-        ctx.fillStyle = "#019428";
+    if (bush.cut && bush.scale > 0) {
+        bush.scale -= 0.05;
+        const drawnWidth  = bush.width  * bush.scale;
+        const drawnHeight = bush.height * bush.scale;
+        const drawnX = bush.x + (bush.width  - drawnWidth)  / 2;
+        const drawnY = bush.y + (bush.height - drawnHeight) / 2;
+        ctx.fillStyle = cuttableBushPattern;
+        ctx.fillRect(drawnX, drawnY, drawnWidth, drawnHeight);
+    } 
+    else if (!bush.cut) {
+        ctx.fillStyle = cuttableBushPattern;
         ctx.fillRect(bush.x, bush.y, bush.width, bush.height);
     }
     });
@@ -168,8 +238,46 @@ function gameLoop() {
     ctx.fillRect(sword.x, sword.y, sword.width, sword.height);
     }
     
-    ctx.fillStyle = "#9eb57b";
-    ctx.fillRect(player.x, player.y, player.width, player.height);
+    // Lilith
+    // head
+    ctx.beginPath();
+    const headCenterX = player.x + 12.5;
+    const headCenterY = player.y + 10;
+    ctx.arc(headCenterX, headCenterY, 10, 0, Math.PI * 2);
+    ctx.fillStyle = "#f2c079";
+    ctx.fill();
+
+    // body — centered under the head
+    ctx.fillStyle = "#b01608";
+    ctx.fillRect(player.x + 5, player.y + 20, 15, 15);
+    // left leg
+    ctx.fillStyle = "#0a0701";
+    ctx.fillRect(player.x + 5, player.y + 40, 6, 8);
+    // right leg
+    ctx.fillStyle = "#130d02";
+    ctx.fillRect(player.x + 15, player.y + 40, 6, 8);
+    // hair with facing direction
+    if (player.facing === "right") {
+        ctx.fillStyle = "#4a90d9";
+        ctx.fillRect(player.x, player.y, 8, 24);
+    } else if (player.facing === "left") {
+        ctx.fillStyle = "#4a90d9";
+        ctx.fillRect(player.x + 17, player.y, 8, 24);
+    } else if (player.facing === "up") {
+        ctx.fillStyle = "#4a90d9";
+        ctx.fillRect(player.x + 4, player.y, 17, 24);
+    } else if (player.facing === "down") {
+        ctx.fillStyle = "#4a90d9";
+        ctx.fillRect(player.x + 4, player.y, 17, 24);
+        const headCenterX = player.x + 12;
+        const headCenterY = player.y + 10;
+        ctx.arc(headCenterX, headCenterY, 10, 0, Math.PI * 2);
+        ctx.fillStyle = "#f2c079";
+        ctx.fill()
+        ctx.fillStyle = "#4a90d9";
+        ctx.beginPath();
+        ctx.fillRect(player.x + 4, player.y, 17, 10);
+    }
 
     if (player.swinging) {
         const centerX = player.x + player.width / 2;
