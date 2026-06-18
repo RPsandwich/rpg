@@ -1,4 +1,5 @@
-// grab the canvas and its 2D drawing "pen" (the context)
+
+// ----DATA/VARIABLES-----
 
 const canvas = document.getElementById("adventure");
 const ctx = canvas.getContext("2d");
@@ -110,6 +111,97 @@ const cuttableBushes = [
     { x: 780, y: 320, width: 20, height: 40, cut: false, scale: 1 },
 ];
 
+
+
+
+// ----FUNCTIONS-----
+
+function drawSword(x, y) {
+    // blade
+    ctx.fillStyle = "#88c2f6";
+    ctx.fillRect(x - 2, y + 5, 5, 25);
+    // crossguard
+    ctx.fillStyle = "#c9a84c";
+    ctx.fillRect(x - 5.5, y + 26, 13, 4);
+    // handle
+    ctx.fillStyle = "#3d1f0a";
+    ctx.fillRect(x - 2, y + 30, 5, 10);
+}
+
+function drawSwingArc() {
+        if (player.swinging) {
+        const centerX = player.x + player.width / 2;
+        let centerY = player.y + player.height / 2;
+
+        if (player.facing === "down") {
+            centerY = player.y + player.height - 5;
+        }
+        const currentAngle = player.swingStart + player.swingAngle;
+        const swordLength = 40;
+        const tipX = centerX + Math.cos(currentAngle) * swordLength;
+        const tipY = centerY + Math.sin(currentAngle) * swordLength;
+        const swordBox = {
+            x: Math.min(centerX, tipX),
+            y: Math.min(centerY, tipY),
+            width: Math.abs(tipX - centerX),
+            height: Math.abs(tipY - centerY),
+        };
+        cuttableBushes.forEach(function(bush) {
+            if (!bush.cut && overlaps(swordBox, bush) && sword.collected) {
+                bush.cut = true;
+            }
+        });
+        
+        ctx.strokeStyle = "#b8feff";
+        ctx.lineWidth = 5;
+        ctx.beginPath();
+        ctx.moveTo(centerX, centerY);
+        ctx.lineTo(tipX, tipY);
+        ctx.stroke();
+    } 
+}
+
+function drawLilith() {
+    // Lilith
+    // head
+    ctx.beginPath();
+    const headCenterX = player.x + 12.5;
+    const headCenterY = player.y + 10;
+    ctx.arc(headCenterX, headCenterY, 10, 0, Math.PI * 2);
+    ctx.fillStyle = "#f2c079";
+    ctx.fill();
+    // body — centered under the head
+    ctx.fillStyle = "#b01608";
+    ctx.fillRect(player.x + 5, player.y + 20, 15, 15);
+    // left leg
+    ctx.fillStyle = "#0a0701";
+    ctx.fillRect(player.x + 5, player.y + 40, 6, 8);
+    // right leg
+    ctx.fillStyle = "#130d02";
+    ctx.fillRect(player.x + 15, player.y + 40, 6, 8);
+    // hair with facing direction
+    if (player.facing === "right") {
+        ctx.fillStyle = "#4a90d9";
+        ctx.fillRect(player.x, player.y, 8, 24);
+    } else if (player.facing === "left") {
+        ctx.fillStyle = "#4a90d9";
+        ctx.fillRect(player.x + 17, player.y, 8, 24);
+    } else if (player.facing === "up") {
+        ctx.fillStyle = "#4a90d9";
+        ctx.fillRect(player.x + 4, player.y, 17, 24);
+    } else if (player.facing === "down") {
+        ctx.fillStyle = "#4a90d9";
+        ctx.fillRect(player.x + 4, player.y, 17, 24);
+        const headCenterX = player.x + 12;
+        const headCenterY = player.y + 10;
+        ctx.arc(headCenterX, headCenterY, 10, 0, Math.PI * 2);
+        ctx.fillStyle = "#f2c079";
+        ctx.fill()
+        ctx.fillStyle = "#4a90d9";
+        ctx.beginPath();
+        ctx.fillRect(player.x + 4, player.y, 17, 10);
+    }}
+
 function overlaps(a, b) {
 return !(
     a.x + a.width  < b.x ||
@@ -119,7 +211,10 @@ return !(
 );
 }
 
-// the game loop — runs ~60 times per second
+
+
+// --- GAME LOOP ---
+
 function gameLoop() {
     // repaint the background every frame (this clears the last frame)
     ctx.fillStyle = grassPattern;
@@ -233,78 +328,16 @@ function gameLoop() {
     console.log("You got the sword!");
     }
 
-    if (!sword.collected) {
-    ctx.fillStyle = "#b8feff";
-    ctx.fillRect(sword.x, sword.y, sword.width, sword.height);
-    }
-    
-    // Lilith
-    // head
-    ctx.beginPath();
-    const headCenterX = player.x + 12.5;
-    const headCenterY = player.y + 10;
-    ctx.arc(headCenterX, headCenterY, 10, 0, Math.PI * 2);
-    ctx.fillStyle = "#f2c079";
-    ctx.fill();
-
-    // body — centered under the head
-    ctx.fillStyle = "#b01608";
-    ctx.fillRect(player.x + 5, player.y + 20, 15, 15);
-    // left leg
-    ctx.fillStyle = "#0a0701";
-    ctx.fillRect(player.x + 5, player.y + 40, 6, 8);
-    // right leg
-    ctx.fillStyle = "#130d02";
-    ctx.fillRect(player.x + 15, player.y + 40, 6, 8);
-    // hair with facing direction
-    if (player.facing === "right") {
-        ctx.fillStyle = "#4a90d9";
-        ctx.fillRect(player.x, player.y, 8, 24);
-    } else if (player.facing === "left") {
-        ctx.fillStyle = "#4a90d9";
-        ctx.fillRect(player.x + 17, player.y, 8, 24);
-    } else if (player.facing === "up") {
-        ctx.fillStyle = "#4a90d9";
-        ctx.fillRect(player.x + 4, player.y, 17, 24);
-    } else if (player.facing === "down") {
-        ctx.fillStyle = "#4a90d9";
-        ctx.fillRect(player.x + 4, player.y, 17, 24);
-        const headCenterX = player.x + 12;
-        const headCenterY = player.y + 10;
-        ctx.arc(headCenterX, headCenterY, 10, 0, Math.PI * 2);
-        ctx.fillStyle = "#f2c079";
-        ctx.fill()
-        ctx.fillStyle = "#4a90d9";
-        ctx.beginPath();
-        ctx.fillRect(player.x + 4, player.y, 17, 10);
-    }
-
-    if (player.swinging) {
-        const centerX = player.x + player.width / 2;
-        const centerY = player.y + player.height / 2;
-        const currentAngle = player.swingStart + player.swingAngle;
-        const swordLength = 40;
-        const tipX = centerX + Math.cos(currentAngle) * swordLength;
-        const tipY = centerY + Math.sin(currentAngle) * swordLength;
-        const swordBox = {
-            x: Math.min(centerX, tipX),
-            y: Math.min(centerY, tipY),
-            width: Math.abs(tipX - centerX),
-            height: Math.abs(tipY - centerY),
-        };
-        cuttableBushes.forEach(function(bush) {
-            if (!bush.cut && overlaps(swordBox, bush) && sword.collected) {
-                bush.cut = true;
-            }
-        });
-        
-        ctx.strokeStyle = "#b8feff";
-        ctx.lineWidth = 5;
-        ctx.beginPath();
-        ctx.moveTo(centerX, centerY);
-        ctx.lineTo(tipX, tipY);
-        ctx.stroke();
+    if (player.facing !== "down") {
+        drawSwingArc();
+        drawLilith();
+        if (!sword.collected) drawSword(sword.x, sword.y);
     } 
+    else {
+        if (!sword.collected) drawSword(sword.x, sword.y);
+        drawLilith();
+        drawSwingArc();
+    }
 
     requestAnimationFrame(gameLoop); // queue up the next frame
     
