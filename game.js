@@ -3,6 +3,16 @@
 
 const canvas = document.getElementById("adventure");
 const ctx = canvas.getContext("2d");
+ctx.imageSmoothingEnabled = false;
+const spriteSheet = new Image();
+spriteSheet.src = "tilemap.png";
+
+const sprites = {
+    left:  { idle: [391, 256], walk1: [391, 273], walk2: [391, 290] },
+    down:  { idle: [408, 256], walk1: [408, 273], walk2: [408, 290] },
+    up:    { idle: [425, 256], walk1: [425, 273], walk2: [425, 290] },
+    right: { idle: [442, 256], walk1: [442, 273], walk2: [442, 290] },
+};
 
 const player = { 
     x: 250, 
@@ -18,6 +28,8 @@ const player = {
     facing: "right",
     swingStart: -Math.PI / 3,
     swingDirection: 1,
+    animFrame: 0,
+    animTimer: 0,
 };
 
 const sword = {
@@ -162,45 +174,17 @@ function drawSwingArc() {
 }
 
 function drawLilith() {
-    // Lilith
-    // head
-    ctx.beginPath();
-    const headCenterX = player.x + 12.5;
-    const headCenterY = player.y + 10;
-    ctx.arc(headCenterX, headCenterY, 10, 0, Math.PI * 2);
-    ctx.fillStyle = "#f2c079";
-    ctx.fill();
-    // body — centered under the head
-    ctx.fillStyle = "#b01608";
-    ctx.fillRect(player.x + 5, player.y + 20, 15, 15);
-    // left leg
-    ctx.fillStyle = "#0a0701";
-    ctx.fillRect(player.x + 5, player.y + 40, 6, 8);
-    // right leg
-    ctx.fillStyle = "#130d02";
-    ctx.fillRect(player.x + 15, player.y + 40, 6, 8);
-    // hair with facing direction
-    if (player.facing === "right") {
-        ctx.fillStyle = "#4a90d9";
-        ctx.fillRect(player.x, player.y, 8, 24);
-    } else if (player.facing === "left") {
-        ctx.fillStyle = "#4a90d9";
-        ctx.fillRect(player.x + 17, player.y, 8, 24);
-    } else if (player.facing === "up") {
-        ctx.fillStyle = "#4a90d9";
-        ctx.fillRect(player.x + 4, player.y, 17, 24);
-    } else if (player.facing === "down") {
-        ctx.fillStyle = "#4a90d9";
-        ctx.fillRect(player.x + 4, player.y, 17, 24);
-        const headCenterX = player.x + 12;
-        const headCenterY = player.y + 10;
-        ctx.arc(headCenterX, headCenterY, 10, 0, Math.PI * 2);
-        ctx.fillStyle = "#f2c079";
-        ctx.fill()
-        ctx.fillStyle = "#4a90d9";
-        ctx.beginPath();
-        ctx.fillRect(player.x + 4, player.y, 17, 10);
-    }}
+    const frameKeys = ["idle", "walk1", "walk2"];
+    const frameKey = frameKeys[player.animFrame];
+    ctx.drawImage(
+        spriteSheet,
+        sprites[player.facing][frameKey][0],
+        sprites[player.facing][frameKey][1],
+        16, 16,
+        player.x, player.y,
+        48, 48
+    );
+}
 
 function overlaps(a, b) {
 return !(
@@ -219,51 +203,64 @@ function gameLoop() {
     // repaint the background every frame (this clears the last frame)
     ctx.fillStyle = grassPattern;
     ctx.fillRect(0, 0, canvas.width, canvas.height);
-    
+
+   
 // ── everything in our game will get drawn here ──
 
     // handle player movement and facing direction including sword swing setup
 
-    // LEFT
-    if (keys["a"] || keys["A"]) {
+if (keys["a"] || keys["A"]) {
     player.x -= 3;
     if (!player.swinging) {
         player.facing = "left";
         player.swingStart = -Math.PI * 2/3;
         player.swingDirection = -1;
     }
-}
-    // RIGHT
-    else if (keys["d"] || keys["D"]) {
+    player.animTimer++;
+    if (player.animTimer > 8) {
+        player.animTimer = 0;
+        player.animFrame = player.animFrame === 1 ? 2 : 1;
+    }
+} else if (keys["d"] || keys["D"]) {
     player.x += 3;
     if (!player.swinging) {
         player.facing = "right";
         player.swingStart = -Math.PI / 3;
         player.swingDirection = 1;
     }
-}
-    // UP
-    else if (keys["w"] || keys["W"]) {
+    player.animTimer++;
+    if (player.animTimer > 8) {
+        player.animTimer = 0;
+        player.animFrame = player.animFrame === 1 ? 2 : 1;
+    }
+} else if (keys["w"] || keys["W"]) {
     player.y -= 3;
     if (!player.swinging) {
         player.facing = "up";
         player.swingStart = -Math.PI * 5/6;
         player.swingDirection = 1;
     }
-}
-    // DOWN
-    else if (keys["s"] || keys["S"]) {
+    player.animTimer++;
+    if (player.animTimer > 8) {
+        player.animTimer = 0;
+        player.animFrame = player.animFrame === 1 ? 2 : 1;
+    }
+} else if (keys["s"] || keys["S"]) {
     player.y += 3;
     if (!player.swinging) {
         player.facing = "down";
         player.swingStart = Math.PI / 6;
         player.swingDirection = 1;
     }
+    player.animTimer++;
+    if (player.animTimer > 8) {
+        player.animTimer = 0;
+        player.animFrame = player.animFrame === 1 ? 2 : 1;
+    }
+} else {
+    player.animFrame = 0;
+    player.animTimer = 0;
 }
-    if (player.x < 0) player.x = 0;
-    if (player.y < 0) player.y = 0;
-    if (player.x > canvas.width - player.width) player.x = canvas.width - player.width;
-    if (player.y > canvas.height - player.height) player.y = canvas.height - player.height;
 
     // console.log(player.facing, player.swingStart);
 
